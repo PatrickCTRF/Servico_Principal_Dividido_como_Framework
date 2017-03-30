@@ -36,11 +36,14 @@ android:theme="@style/AppTheme">
         <action android:name="android.intent.action.BOOT_COMPLETED" />
     </intent-filter>
 </receiver>
-    <receiver android:name=".ServicoParaProximidadeDaHome" />
 
-    <service android:name=".MyServiceSemThread" />
+
+<service android:name=".MyServiceSemThread" />
 <service android:name=".ServicoParaGPS" />
 <service android:name=".ServicoParaProximidadeDaHome" />
+<service android:name=".ServicoDownload" />
+<service android:name=".ServicoGerenciamento" />
+<service android:name=".ServicoColetaDados" />
 
 
 </application>

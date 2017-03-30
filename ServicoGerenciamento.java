@@ -29,7 +29,7 @@ public class ServicoGerenciamento extends Service {
 
     final Handler handler = new Handler();
     final AquisicaoSensores info = new AquisicaoSensores(this);
-    String Comando_do_usuario;
+    String comando_do_usuario = null;
     String modo_Desempenho = null;
 
     Runnable runnableCode;
@@ -65,34 +65,27 @@ public class ServicoGerenciamento extends Service {
                 try {
                     BufferedReader bufferLeitura = new BufferedReader(new FileReader(arquivoComando));
 
-                    Comando_do_usuario = bufferLeitura.readLine();
+                    comando_do_usuario = bufferLeitura.readLine();
                     bufferLeitura.close();
 
                     FileWriter escritor = new FileWriter(arquivoModo, false);//apaga o buffer de dados e o fecha.
 
 
-                    switch (modo_Desempenho) {//Seleciona o modo no qual o download atuará.
-                        case "desempenho":
-                            escritor.write("desempenho");
-                            break;
+                    if(comando_do_usuario.equals("desempenho")) {//Seleciona o modo no qual o download atuará.
+                        escritor.write("desempenho");
 
-                        case "automatico":
-                            avaliaConsumo(escritor, info);
-                            break;
+                    }else if(comando_do_usuario.equals("automatico")){
+                        avaliaConsumo(escritor, info);
 
-                        case "economia":
-                            escritor.write("economia");
-                            break;
+                    }else if(comando_do_usuario.equals("economia")){
+                        escritor.write("economia");
 
-                        case "desligado":
+                    }else if(comando_do_usuario.equals("desligado")){
                             escritor.write("desligado");
-                            break;
 
-                        default:
+                    }else{
                             escritor.write("desligado");
-                            break;
-
-
+                        
                     }
 
 

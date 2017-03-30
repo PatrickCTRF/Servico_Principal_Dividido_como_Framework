@@ -48,12 +48,24 @@ public class MainActivity extends AppCompatActivity {
 
     // Método que dará início ao servico de background.
     public void startService(View view) {
-        startService(new Intent(getBaseContext(), MyServiceSemThread.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+        //startService(new Intent(getBaseContext(), MyServiceSemThread.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+        startService(new Intent(getBaseContext(), ServicoDownload.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+
+        startService(new Intent(getBaseContext(), ServicoGerenciamento.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+
+        startService(new Intent(getBaseContext(), ServicoColetaDados.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+
     }
 
     // Metodo que parara o servico
     public void stopService(View view) {
-        stopService(new Intent(getBaseContext(), MyServiceSemThread.class));
+        //stopService(new Intent(getBaseContext(), MyServiceSemThread.class));
+
+        stopService(new Intent(getBaseContext(), ServicoDownload.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+
+        stopService(new Intent(getBaseContext(), ServicoGerenciamento.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+
+        stopService(new Intent(getBaseContext(), ServicoColetaDados.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
     }
 
     public void seta_home(View view) {//Define que o ponto atual é a home do usuario.
