@@ -53,7 +53,7 @@ public class ServicoDownload extends Service {
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
 
-        Toast.makeText(this, "Service Started", LENGTH_LONG).show();
+        Toast.makeText(this, "Service Download Started", LENGTH_LONG).show();
 
         info.getInfo();
 
@@ -65,7 +65,7 @@ public class ServicoDownload extends Service {
             @Override
             public void run() {
 
-                Log.v("SERVICO PRINCPAL BOOT", "O serviço principal foi chamado." + contador + "  " + contadorDeLongoPrazo);
+                Log.v("SERVICO", "O ServicoDownload foi chamado. Contador: " + contador + "  Contador De Longo Prazo: " + contadorDeLongoPrazo);
 
                 locationListener.getMyLocation();//Solicita as atualizações de local
 
@@ -88,7 +88,7 @@ public class ServicoDownload extends Service {
                     e.printStackTrace();
                 }
 
-                if(++contador<40) {
+                if(++contador<3){
 
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
 

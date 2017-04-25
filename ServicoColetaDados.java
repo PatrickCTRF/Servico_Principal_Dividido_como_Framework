@@ -31,6 +31,8 @@ public class ServicoColetaDados extends Service {
     boolean registrouAlertas = false;
     Conectividade conexao = new Conectividade(this);
     Intent intente = null;
+    FileWriter escritor;
+    BufferedReader checkpoint_Tensao;
 
     //Obtém sua localizção atual
     Localizador locationListener = new Localizador(this);
@@ -59,13 +61,18 @@ public class ServicoColetaDados extends Service {
             @Override
             public void run() {
 
-                Log.v("SERVICO PRINCPAL BOOT", "O serviço principal foi chamado." + contador + "  " + contadorDeLongoPrazo);
+                Log.v("SERVICO", "O ServicoColetaDados foi chamado. Contador: " + contador + "  Contador De Longo Prazo: " + contadorDeLongoPrazo);
 
                 locationListener.getMyLocation();//Solicita as atualizações de local
 
                 File arquivoDados = new File(Environment.getExternalStorageDirectory().toString() + "/" + "_InformacoesDaVidaDoUsuario.txt");
 
                 File arquivoHome = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Latitude_Longitude_Home.txt");
+
+                File arquivoEixoX = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Eixo_X_Tempo.txt");
+                File arquivoEixoY = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Eixo_Y_Bateria.txt");
+                File arquivoTensaoInicial = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Tensao_ao_desconectar_carregador.txt");
+                File arquivoTempoInicial = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Momento_ao_desconectar_carregador.txt");
 
                 //File arquivoModo = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Modo_Atual.txt");
 
@@ -84,16 +91,18 @@ public class ServicoColetaDados extends Service {
 
                     if(!registrouAlertas){
                         Log.v("ALERTA DE PROXIMIDADE", "TENTANDO CHAMAR ALERTAS...");
-                        locationListener.registraAlertaDeProximidade(home_latitude, home_longitude, (float) 10);//Registramos e solicitamos o alerta de proximidade.
+                        locationListener.registraAlertaDeProximidade(home_latitude, home_longitude, (float) 22);//Registramos e solicitamos o alerta de proximidade.
                         registrouAlertas = true;
                     }
 
-                    FileWriter escritor;
+                    if(locationListener.getIncerteza()<22) {//Só realiza os procedimentos do serviço se obtivermos um valor de incerteza "confiável".
 
-                    if(locationListener.getIncerteza()<17)//Só realiza os procedimentos do serviço se obtivermos um valor de incerteza "confiável".
-                        if(locationListener.isInHome && conexao.isConnectedWifi()){//Considera-se que na home comm conexão wifi há condições de enviar ao servidor.
+
+                        if (locationListener.isInHome && conexao.isConnectedWifi()) {//Considera-se que na home comm conexão wifi há condições de enviar ao servidor.
                             //Se houver condição de enviar os dados ao servidor, envie todos os dados disponíveis.
                             Log.v("HOMEinfo", "ESTÁ NA HOME");
+
+                            contador = 9999999;//Estoura o contador para fazer com que o serviço não continue amostrando dados, já que já obtivemos a amostra necessária.
 
                             BufferedReader leituraDados = new BufferedReader(new FileReader(arquivoDados));
 
@@ -103,10 +112,11 @@ public class ServicoColetaDados extends Service {
 
                                 Log.v("SERVIDOR", "DADOS SALVOS ENVIANDO");
 
-                                while((aux2 = leituraDados.readLine()) != null){//Leia tudo que está no arquivo.
+                                while ((aux2 = leituraDados.readLine()) != null) {//Leia tudo que está no arquivo.
                                     aux += "\n" + aux2;
                                     aux2 = null;
-                                }aux +=  "\n";
+                                }
+                                aux += "\n";
 
                                 aux += "\n" + "\n\nTempo atual: " + System.currentTimeMillis() + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
 
@@ -117,7 +127,7 @@ public class ServicoColetaDados extends Service {
                                 myClient = new Client(ip, porta, aux);//Envie para o servidor os dados que estavam salvos.
                                 myClient.execute();//A quebra de linha após o aux é para alinhar os dados do arquivo com os do servidor da forma que são recebidos.
 
-                            }else{//Se o arquivo estiver vazio...
+                            } else {//Se o arquivo estiver vazio...
 
                                 Log.v("SERVIDOR", "DADOS ENVIANDO");
 
@@ -133,7 +143,7 @@ public class ServicoColetaDados extends Service {
                             sendBroadcast(intente);
 
 
-                        }else{//Se nao houver condições de enviar ao servidor, guarde os dados num arquivo.
+                        } else {//Se nao houver condições de enviar ao servidor, guarde os dados num arquivo.
 
                             Log.v("HOMEinfo", "NÃO ESTÁ NA HOME");
 
@@ -149,20 +159,52 @@ public class ServicoColetaDados extends Service {
                             sendBroadcast(intente);
 
                         }
+                    }
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 if(++contador<40) {
-
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
 
-                } else if(++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+                } else if(++contadorDeLongoPrazo<100){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+
+//=========================DADOS PARA A REGRESSÃO LINEAR========================================================================================================================================================"
+
+                    try {
+
+                        Log.v("MMQ", "Verificando se está descarregando.");
+                        if(info.getStatusString().equals("Discharging")) {//Só coleta pontos para a regressão de consumo se a bateria estiver sendo usada como alimentação.
+                            Log.v("MMQ", "Escrevendo mais um ponto de amostragem nos arquivos vetores.");
+
+                            arquivoTensaoInicial.createNewFile();
+                            checkpoint_Tensao = new BufferedReader(new FileReader(arquivoTensaoInicial));
+                            arquivoEixoY.createNewFile();//Garantindo que o arquivo existe.
+                            escritor = new FileWriter(arquivoEixoY, true);
+                            escritor.write("" + ( 100 -Integer.parseInt(checkpoint_Tensao.readLine()) + info.getLevel()) + "\n");//Estamos normalizando o level de bateria no momento de retirada do carregador no valor máximo para facilitar a regressão.
+                            escritor.close();
+                            checkpoint_Tensao.close();
+
+                            arquivoTempoInicial.createNewFile();
+                            checkpoint_Tensao = new BufferedReader(new FileReader(arquivoTempoInicial));
+                            arquivoEixoX.createNewFile();//Garantindo que o arquivo existe.
+                            escritor = new FileWriter(arquivoEixoX, true);
+                            escritor.write("" + System.currentTimeMillis() + (-Integer.parseInt(checkpoint_Tensao.readLine()) + "\n"));//Esses -10800000 são para converter o fuso horário para o horário de brasília.
+                            escritor.close();
+                            checkpoint_Tensao.close();
+
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+//==================================FIM DA OBTENÇÃO===============================================================================================================================================
 
                     desligaSensores();
                     contador = 0;//Reiniciamos o contador de amostragem.
-                    handler.postDelayed(this, 600000);//10 minutos.
+                    handler.postDelayed(this, 150000);// 2,5 minutos.
                 }else{
                     onDestroy();
                 }

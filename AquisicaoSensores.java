@@ -32,6 +32,8 @@ public class AquisicaoSensores extends ContextWrapper{
     private int qtde = 0;
     private List<Sensor> lista;
     private int level;
+    private String statusString;
+    private boolean dataAvailable;
 
     /* Criei classes anônimas separadas para o acelerometro e o giroscopio para poder usar dois registerListener() diferentes*/
 
@@ -73,7 +75,9 @@ public class AquisicaoSensores extends ContextWrapper{
 
     public AquisicaoSensores(Context base) {
         super(base);
-        level = 92;
+        level = 999999;
+        statusString = " ";
+        dataAvailable = false;
     }
 
 
@@ -111,8 +115,16 @@ public class AquisicaoSensores extends ContextWrapper{
 
     }
 
+    public boolean isDataAvailable() {//Retorna true se os dados estão atualizados. Caso contrário, retorna false. Apenas utilize as informações desta classe quando os dados estiverem atualizados.
+        return dataAvailable;
+    }
+
     public int getLevel() {
         return level;
+    }
+
+    public String getStatusString() {
+        return statusString;
     }
 
     private BroadcastReceiver battery_receiver = new BroadcastReceiver() {
@@ -128,7 +140,8 @@ public class AquisicaoSensores extends ContextWrapper{
             int rawlevel = intent.getIntExtra("level", -1);
             int voltage = intent.getIntExtra("voltage", 0);
             int temperature = intent.getIntExtra("temperature", 0);
-            level = level;
+
+            dataAvailable = true;
 
             Bundle bundle = intent.getExtras();
 
@@ -198,7 +211,7 @@ public class AquisicaoSensores extends ContextWrapper{
     }
 
     private String getStatusString(int status) {
-        String statusString = "Unknown";
+        statusString = "Unknown";
 
         switch (status) {
             case BatteryManager.BATTERY_STATUS_CHARGING:

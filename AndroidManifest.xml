@@ -28,12 +28,11 @@ android:theme="@style/AppTheme">
 </activity>
 
 <receiver
-    android:name=".Listener_de_Boot_Completo"
-    android:label="Listener_de_Boot_Completo"
-    android:enabled="true"
-    android:exported="false">
+    android:name=".Listener_de_Boot_Completo">
     <intent-filter>
+        <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
         <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="com.example.patrick.USER_ACTION" />
     </intent-filter>
 </receiver>
 
@@ -44,6 +43,7 @@ android:theme="@style/AppTheme">
 <service android:name=".ServicoDownload" />
 <service android:name=".ServicoGerenciamento" />
 <service android:name=".ServicoColetaDados" />
+<service android:name=".ServicoListenerDesconectouCarregador" />
 
 
 </application>

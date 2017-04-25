@@ -31,6 +31,7 @@ public class ServicoGerenciamento extends Service {
     final AquisicaoSensores info = new AquisicaoSensores(this);
     String comando_do_usuario = null;
     String modo_Desempenho = null;
+    MMQ regressao_linear = new MMQ();
 
     Runnable runnableCode;
 
@@ -44,7 +45,7 @@ public class ServicoGerenciamento extends Service {
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
 
-        Toast.makeText(this, "Service Started", LENGTH_LONG).show();
+        Toast.makeText(this, "Service Gerenciamento Started", LENGTH_LONG).show();
 
         info.getInfo();
 
@@ -56,7 +57,7 @@ public class ServicoGerenciamento extends Service {
             @Override
             public void run() {
 
-                Log.v("SERVICO DOWNLOAD BOOT", "O serviço dowload foi chamado." + contador + "  " + contadorDeLongoPrazo);
+                Log.v("SERVICO", "O ServicoGerenciamento foi chamado. Contador: " + contador + "  Contador De Longo Prazo: " + contadorDeLongoPrazo);
 
                 File arquivoComando = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Comando.txt");
 
@@ -81,10 +82,10 @@ public class ServicoGerenciamento extends Service {
                         escritor.write("economia");
 
                     }else if(comando_do_usuario.equals("desligado")){
-                            escritor.write("desligado");
+                        escritor.write("desligado");
 
                     }else{
-                            escritor.write("desligado");
+                        escritor.write("desligado");
                         
                     }
 
@@ -94,11 +95,14 @@ public class ServicoGerenciamento extends Service {
                     e.printStackTrace();
                 }
 
-                if(++contador<40) {
+                Log.v("MMQ", "Parâmetro B: " + regressao_linear.getB());
+                Log.v("MMQ", "Parâmetro A: " + regressao_linear.getA());
+
+                if(++contador<3) {//Este serviço não precisa ficar se repetindo. Acho que poderia até ser 1 aqui. Testar posteriormente.
 
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
 
-                } else if(++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+                } else if(++contadorDeLongoPrazo<50){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
 
                     contador = 0;//Reiniciamos o contador de amostragem.
                     handler.postDelayed(this, 600000);//10 minutos.
@@ -127,9 +131,9 @@ public class ServicoGerenciamento extends Service {
 
     private void avaliaConsumo(FileWriter escritor, AquisicaoSensores info) throws IOException {
 
-        float percentual_previsto = (float) (1 - 0.8*((System.currentTimeMillis()%8400000)/(float)8400000));//nesta variável guardamos o valor do restante de bateria que DEVERIA HAVER neste momento ( de 0,00 a 1,00).
-
-        if(percentual_previsto*100 <= info.getLevel()){
+        //float percentual_previsto = (float) (1 - 0.8*((System.currentTimeMillis()%8400000)/(float)8400000));//nesta variável guardamos o valor do restante de bateria que DEVERIA HAVER neste momento ( de 0,00 a 1,00).
+        float percentual_previsto = (float) (regressao_linear.getA() + regressao_linear.getB()*((-10800000+System.currentTimeMillis())%86400000));//nesta variável guardamos o valor do restante de bateria que DEVERIA HAVER neste momento ( de 0,00 a 1,00). Esses -10800000 são para converter o fuso horário para o horário de brasília.
+        if(percentual_previsto <= info.getLevel()){
             escritor.write("desempenho");//Se houver mais bateria que o previsto, gaste à vontade.
         }else{
             escritor.write("economia");//Se a bateria estiver abaixo do previsto, economize.
