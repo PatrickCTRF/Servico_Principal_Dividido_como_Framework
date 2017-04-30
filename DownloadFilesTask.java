@@ -55,7 +55,7 @@ class DownloadFilesTask extends AsyncTask<URL, Integer, Long> {
                 while ((parcialSize = input.read(data)) != -1){
                     totalSize += parcialSize;
 
-                    Log.v("URLL", "obteve mais alguns bytes");
+                    //Log.v("URLL", "obteve mais alguns bytes");
                     arquivo.write(data, 0, parcialSize);
 
                     if(contador_auxiliar <= 0) {publishProgress((int) ((totalSize / (float) tamanhoDoArquivo) * 100)); contador_auxiliar = 500;}
@@ -89,7 +89,7 @@ class DownloadFilesTask extends AsyncTask<URL, Integer, Long> {
     protected void onProgressUpdate(Integer... progress) {
 
 
-    Log.v("NOTIFICAÇÃO", "chamada");
+    //Log.v("NOTIFICAÇÃO", "chamada");
     super.onProgressUpdate(progress);
 
         int id = 1;

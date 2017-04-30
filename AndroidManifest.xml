@@ -33,6 +33,9 @@ android:theme="@style/AppTheme">
         <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
         <action android:name="android.intent.action.BOOT_COMPLETED" />
         <action android:name="com.example.patrick.USER_ACTION" />
+        <action android:name="com.example.patrick.START_SERVICOCOLETA_DADOS" />
+        <action android:name="com.example.patrick.START_SERVICODOWNLOAD" />
+        <action android:name="com.example.patrick.START_SERVICOGERENCIAMENTO" />
     </intent-filter>
 </receiver>
 

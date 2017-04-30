@@ -33,6 +33,27 @@ public class Listener_de_Boot_Completo extends BroadcastReceiver {
 
         }
 
+        if (intent.getAction().equals("com.example.patrick.START_SERVICOCOLETA_DADOS")){
+            Log.d("BROADSCAST", "Foi foi reconhecido broadcast de coleta");
+            Intent serviceIntent = new Intent(context, ServicoColetaDados.class);//invocando o serviço qque desejamos rodar ao boot
+            context.startService(serviceIntent);//iremos invocá-lo a partir do contexto que nos foi passado pelo broadcast.
+        }
+
+        if (intent.getAction().equals("com.example.patrick.START_SERVICODOWNLOAD")){
+            Log.d("BROADSCAST", "Foi foi reconhecido broadcast de download");
+            Intent serviceIntent = new Intent(context, ServicoDownload.class);//invocando o serviço qque desejamos rodar ao boot
+            context.startService(serviceIntent);//iremos invocá-lo a partir do contexto que nos foi passado pelo broadcast.
+        }
+
+        if (intent.getAction().equals("com.example.patrick.START_SERVICOGERENCIAMENTO")){
+            Log.d("BROADSCAST", "Foi foi reconhecido broadcast de gerenciamento");
+            Intent serviceIntent = new Intent(context, ServicoGerenciamento.class);//invocando o serviço qque desejamos rodar ao boot
+            context.startService(serviceIntent);//iremos invocá-lo a partir do contexto que nos foi passado pelo broadcast.
+
+        }
+
+
+
         if(intent.getAction().equals("com.example.patrick.USER_ACTION")||Intent.ACTION_POWER_DISCONNECTED.equals(intent.getAction())){//A detecção de USER_ACTION é somente para podermos ativar este if manualmente pelo app BroadcastEnvia.
             Log.d("BROADSCAST", "Foi foi reconhecido broadcast de POWER DISCONNECTED");
 

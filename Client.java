@@ -6,7 +6,6 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,10 +34,12 @@ public class Client extends AsyncTask<Void, Void, Void> {
     }
 
     Client(String addr, int port, String info) {//addr é relativo a address = endereço web.
+        Log.v("Conexão Client", "Criando conexão");
         dstAddress = addr;
         dstPort = port;
         this.textResponse = null;
         this.info = info;
+        Log.v("Conexão Client", "Criando conexão 2");
     }
 
     public void setInfo(String info) {
@@ -48,9 +49,12 @@ public class Client extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... arg0) {
 
+        Log.v("Conexão Client", "Tentando conexão00");
         Socket socket = null;
-
+        Log.v("Conexão Client", "Tentando conexão0");
         try {
+
+            Log.v("Conexão Client", "Tentando conexão");
             socket = new Socket(dstAddress, dstPort);
 
             String bytesFromServersStringRead = null;
@@ -58,12 +62,14 @@ public class Client extends AsyncTask<Void, Void, Void> {
 
             //calendario = Calendar.getInstance();
             //socket.getOutputStream().write(("" + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n").getBytes());
+            Log.v("Conexão Client", "Enviando Dados");
             socket.getOutputStream().write((info + "\nFIM\n").getBytes());
+            Log.v("Conexão Client", "Dados enviados");
 
             bytesFromServersStringRead = inputStream.readLine();
             response += bytesFromServersStringRead;
 
-            Log.d("GOOGLE GOOGLE says:", response);
+            Log.v("Conexão Client", "Resposta: " + response);
 
         } catch (UnknownHostException e) {
             // TODO Auto-generated catch block

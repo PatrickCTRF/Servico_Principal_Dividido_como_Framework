@@ -65,7 +65,7 @@ public class ServicoParaGPS extends Service {
 
 
 
-                if(!coordenadas.coordenadas_atualizadas()){
+                if(!(coordenadas.coordenadas_atualizadas() && coordenadas.getIncerteza()<22)){
                     handler.postDelayed(this, 1000);
                     Log.v("2222222222", "2222222222222");
                 }else {
@@ -74,7 +74,7 @@ public class ServicoParaGPS extends Service {
 
                         Log.v("33333333333333", "333333333333333333");
 
-                        escritor.write("" + coordenadas.getLatitude() + " \n" + coordenadas.getLongitude());//Seta a nova posição de home no arquivo de registro.
+                        escritor.write("" + coordenadas.getLatitude() + " \n" + coordenadas.getLongitude() + " \n" + coordenadas.getIncerteza() + " \n");//Seta a nova posição de home no arquivo de registro.
                         escritor.close();
 
                     } catch (IOException e) {

@@ -1,5 +1,7 @@
 package com.example.patrick.servico_principal;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -30,8 +32,8 @@ public class ServicoGerenciamento extends Service {
     final Handler handler = new Handler();
     final AquisicaoSensores info = new AquisicaoSensores(this);
     String comando_do_usuario = null;
-    String modo_Desempenho = null;
     MMQ regressao_linear = new MMQ();
+    AlarmManager alarm;
 
     Runnable runnableCode;
 
@@ -48,6 +50,9 @@ public class ServicoGerenciamento extends Service {
         Toast.makeText(this, "Service Gerenciamento Started", LENGTH_LONG).show();
 
         info.getInfo();
+
+        alarm = (AlarmManager) getBaseContext().getSystemService(Context.ALARM_SERVICE);
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.START_SERVICOGERENCIAMENTO"),  PendingIntent.FLAG_UPDATE_CURRENT);
 
         runnableCode = new Runnable() {
 
@@ -98,17 +103,19 @@ public class ServicoGerenciamento extends Service {
                 Log.v("MMQ", "Parâmetro B: " + regressao_linear.getB());
                 Log.v("MMQ", "Parâmetro A: " + regressao_linear.getA());
 
-                if(++contador<3) {//Este serviço não precisa ficar se repetindo. Acho que poderia até ser 1 aqui. Testar posteriormente.
+                if(false && ++contador<3) {//Este serviço não precisa ficar se repetindo. Acho que poderia até ser 1 aqui. Testar posteriormente.
 
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
 
-                } else if(++contadorDeLongoPrazo<50){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+                } else if( false && ++contadorDeLongoPrazo<50){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
 
                     contador = 0;//Reiniciamos o contador de amostragem.
                     handler.postDelayed(this, 600000);//10 minutos.
-                }else{
-                    onDestroy();
                 }
+
+                alarm.set(AlarmManager.RTC, System.currentTimeMillis() + 150000, pendingIntent );
+                handler.removeCallbacks(this);
+
             }
         };
 
@@ -120,6 +127,7 @@ public class ServicoGerenciamento extends Service {
     @Override
     public void onDestroy() {
 
+        alarm.cancel(PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.START_SERVICOGERENCIAMENTO"),  PendingIntent.FLAG_UPDATE_CURRENT));
         if(info != null) info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
 
         Toast.makeText(this, "Service Destroyed", LENGTH_LONG).show();

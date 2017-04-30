@@ -88,7 +88,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);//Solicita atualizações de localização por WiFi para este listener (o próprio  obeto instanciado a partir desta classe).
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);//Solicita atualizações de localização por GPS para este listener (o próprio  obeto instanciado a partir desta classe).
 
-            registrou_manager = !registrou_manager;
+            registrou_manager = true;
 
             Log.v("LISTENER", "listener REGISTRADO");
         }
@@ -109,7 +109,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
     public boolean registraAlertaDeProximidade(double latitude, double longitude, float raio) {//Um alerta a ser disparado sempre que entramos num dado perímetro.
 
         //O pendingIntent é um objeto que aguarda para lançar um intent no sistema. No caso, solicitei que este fosse lançado na forma de broadcast (getBroadcast), mas poderia lançá-lo para rodar um serviço ou mesmo uma activity, etc.
-        intentPendente = PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.ALERTA_PROXIMIDADE"), FLAG_UPDATE_CURRENT);//Esta flag indica que se o pendinIntent for novamente chamado, os EXTRAS do meu intent serão sobrescritos apenas.
+        intentPendente = PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.ALERTA_PROXIMIDADE"), PendingIntent.FLAG_CANCEL_CURRENT);//Esta flag indica que se o pendinIntent for novamente chamado, os EXTRAS do meu intent serão sobrescritos apenas.
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -122,6 +122,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
         }
 
         registerAlertaDeProximidadeReceiver();//Registramos o receiver para os brodcasts de proximidade.
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.addProximityAlert(latitude, longitude, raio, -1, intentPendente);//Adiciona um alert de proximidade com as coordenadas dadas.
 
         return true;//Retorna true se tudo foi registrado corretamente.
@@ -144,7 +145,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
 
             isInHome = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false);//O EXTRA relacionado à chave KEY_PROXIMITY_ENTERING possui TRUE quando dentro do perímetro determinado e FALSE caso contrário.
                                                                                 //Este intent é enviado pelo alerta gerado pelo método addProximityAlert.
-            Log.v("ALERTA DE PROXIMIDADE", "BOOLEAN:" + isInHome);
+            Log.v("ALERTA DE PROXIMIDADE", "boolean: " + isInHome);
 
         }
 
@@ -183,7 +184,6 @@ public class Localizador extends ContextWrapper implements LocationListener {
         aguardando_coordenadas = true;
         intentPendente = null;
         incerteza = 99999999;//Inicialmente a incerteza é absoluta.
-
-
+        registrou_manager = false;
     }
 }

@@ -12,6 +12,7 @@ import android.telephony.TelephonyManager;
 public class Conectividade {
     
     private Context context;
+    private boolean isWifiConnected;
 
     public NetworkInfo getNetworkInfo(){
         ConnectivityManager cm = (ConnectivityManager) this.context.getSystemService(this.context.CONNECTIVITY_SERVICE);
@@ -25,7 +26,8 @@ public class Conectividade {
 
     public boolean isConnectedWifi(){
         NetworkInfo info = getNetworkInfo();
-        return (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI);
+        isWifiConnected = (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI);
+        return isWifiConnected;
     }
 
     public boolean isConnectedMobile(){
@@ -89,6 +91,7 @@ public class Conectividade {
 
     public Conectividade(Context context) {
         this.context = context;
+        this.isWifiConnected = false;
     }
 }
 

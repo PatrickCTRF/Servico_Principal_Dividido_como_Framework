@@ -1,5 +1,7 @@
 package com.example.patrick.servico_principal;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -29,14 +31,11 @@ public class ServicoDownload extends Service {
 
     final Handler handler = new Handler();
     final AquisicaoSensores info = new AquisicaoSensores(this);
-    double home_latitude = 0, home_longitude = 0;
     boolean registrouAlertas = false;
     Conectividade conexao = new Conectividade(this);
-    Intent intente = null;
     Context contextt = this;
     String modo_Desempenho = null;
-
-
+    AlarmManager alarm;
 
     //Obtém sua localizção atual
     Localizador locationListener = new Localizador(this);
@@ -57,6 +56,9 @@ public class ServicoDownload extends Service {
 
         info.getInfo();
 
+        alarm = (AlarmManager) getBaseContext().getSystemService(Context.ALARM_SERVICE);
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.START_SERVICODOWNLOAD"),  PendingIntent.FLAG_UPDATE_CURRENT);
+
         runnableCode = new Runnable() {
 
             private int contador = 0;
@@ -68,12 +70,7 @@ public class ServicoDownload extends Service {
                 Log.v("SERVICO", "O ServicoDownload foi chamado. Contador: " + contador + "  Contador De Longo Prazo: " + contadorDeLongoPrazo);
 
                 locationListener.getMyLocation();//Solicita as atualizações de local
-
-                Calendar calendario = Calendar.getInstance();
-
-                File arquivoDados = new File(Environment.getExternalStorageDirectory().toString() + "/" + "_InformacoesDaVidaDoUsuario.txt");
-
-                File arquivoHome = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Latitude_Longitude_Home.txt");
+                conexao.isConnectedWifi();
 
                 File arquivoModo = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Modo_Atual.txt");
 
@@ -88,11 +85,7 @@ public class ServicoDownload extends Service {
                     e.printStackTrace();
                 }
 
-                if(++contador<3){
-
-                    handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
-
-                } else if(++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+                if(true || ++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
 
                     if(conexao.isConnectedWifi() && !modo_Desempenho.equals("desligado"))//Só faz download por WiFi pfv.
                     if((modo_Desempenho.equals("economia") && info.getLevel()>15) || modo_Desempenho.equals("desempenho")){//Se o modo de desempenho estiver  ligado baixe. Se for modo de economia com bateria suficiente, baixe tb.
@@ -121,10 +114,11 @@ public class ServicoDownload extends Service {
                     }
 
                     desligaSensores();
-                    contador = 0;//Reiniciamos o contador de amostragem.
-                    handler.postDelayed(this, 600000);//10 minutos.
-                }else{
-                    onDestroy();
+                    //handler.postDelayed(this, 600000);//10 minutos.
+
+                    if(modo_Desempenho.equals("economia")){alarm.set(AlarmManager.RTC, System.currentTimeMillis() + (4*3600000), pendingIntent );}//No modo de economia, baixe a cada 4 horas.
+                    else{alarm.set(AlarmManager.RTC, System.currentTimeMillis() + (1800000), pendingIntent );}//No modo de desempenho, baixe a cada meia hora o arqivo.
+                    handler.removeCallbacks(this);
                 }
             }
         };
@@ -144,6 +138,7 @@ public class ServicoDownload extends Service {
     @Override
     public void onDestroy() {
 
+        alarm.cancel(PendingIntent.getBroadcast(this, 0, new Intent("com.example.patrick.START_SERVICODOWNLOAD"),  PendingIntent.FLAG_UPDATE_CURRENT));
         if(locationListener != null)locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
         if(info != null) info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
 
